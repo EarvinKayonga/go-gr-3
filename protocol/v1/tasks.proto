@@ -2,13 +2,16 @@ syntax = "proto3";
 
 package tasks.v1;
 
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/EarvinKayonga/tasks/gen/protocol/v1;tasksv1";
 
 message Task {
   string id = 1;
   string title = 2;
   Status status = 3;
-  string created_at = 4;
+  google.protobuf.Timestamp created_at = 4;
 }
 
 enum Status {
@@ -19,7 +22,7 @@ enum Status {
 
 service TaskService {
   // Get all tasks
-  rpc GetTasks (GetTasksRequest) returns (Task);
+  rpc GetTasks (google.protobuf.Empty) returns (GetTasksResponse);
 
   // Get a specific task
   rpc GetTask (GetTaskRequest) returns (Task);
@@ -36,6 +39,10 @@ service TaskService {
 
 message GetTasksRequest {
   string id = 1;
+}
+
+message GetTasksResponse {
+  repeated Task tasks = 1;
 }
 
 message GetTaskRequest {

@@ -9,6 +9,7 @@ import (
 	context "context"
 	errors "errors"
 	v1 "github.com/EarvinKayonga/tasks/gen/protocol/v1"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	http "net/http"
 	strings "strings"
 )
@@ -58,7 +59,7 @@ var (
 // TaskServiceClient is a client for the tasks.v1.TaskService service.
 type TaskServiceClient interface {
 	// Get all tasks
-	GetTasks(context.Context, *connect.Request[v1.GetTasksRequest]) (*connect.Response[v1.Task], error)
+	GetTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetTasksResponse], error)
 	// Get a specific task
 	GetTask(context.Context, *connect.Request[v1.GetTaskRequest]) (*connect.Response[v1.Task], error)
 	// Create a new task
@@ -79,7 +80,7 @@ type TaskServiceClient interface {
 func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TaskServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &taskServiceClient{
-		getTasks: connect.NewClient[v1.GetTasksRequest, v1.Task](
+		getTasks: connect.NewClient[emptypb.Empty, v1.GetTasksResponse](
 			httpClient,
 			baseURL+TaskServiceGetTasksProcedure,
 			connect.WithSchema(taskServiceGetTasksMethodDescriptor),
@@ -114,7 +115,7 @@ func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // taskServiceClient implements TaskServiceClient.
 type taskServiceClient struct {
-	getTasks   *connect.Client[v1.GetTasksRequest, v1.Task]
+	getTasks   *connect.Client[emptypb.Empty, v1.GetTasksResponse]
 	getTask    *connect.Client[v1.GetTaskRequest, v1.Task]
 	createTask *connect.Client[v1.CreateTaskRequest, v1.Task]
 	updateTask *connect.Client[v1.UpdateTaskRequest, v1.Task]
@@ -122,7 +123,7 @@ type taskServiceClient struct {
 }
 
 // GetTasks calls tasks.v1.TaskService.GetTasks.
-func (c *taskServiceClient) GetTasks(ctx context.Context, req *connect.Request[v1.GetTasksRequest]) (*connect.Response[v1.Task], error) {
+func (c *taskServiceClient) GetTasks(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetTasksResponse], error) {
 	return c.getTasks.CallUnary(ctx, req)
 }
 
@@ -149,7 +150,7 @@ func (c *taskServiceClient) DeleteTask(ctx context.Context, req *connect.Request
 // TaskServiceHandler is an implementation of the tasks.v1.TaskService service.
 type TaskServiceHandler interface {
 	// Get all tasks
-	GetTasks(context.Context, *connect.Request[v1.GetTasksRequest]) (*connect.Response[v1.Task], error)
+	GetTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetTasksResponse], error)
 	// Get a specific task
 	GetTask(context.Context, *connect.Request[v1.GetTaskRequest]) (*connect.Response[v1.Task], error)
 	// Create a new task
@@ -217,7 +218,7 @@ func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption
 // UnimplementedTaskServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedTaskServiceHandler struct{}
 
-func (UnimplementedTaskServiceHandler) GetTasks(context.Context, *connect.Request[v1.GetTasksRequest]) (*connect.Response[v1.Task], error) {
+func (UnimplementedTaskServiceHandler) GetTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetTasksResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tasks.v1.TaskService.GetTasks is not implemented"))
 }
 
