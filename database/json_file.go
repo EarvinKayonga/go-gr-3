@@ -16,7 +16,7 @@ type jsonFile struct {
 	file string
 }
 
-func NewJsonFile(file string) (TaskDB, error) {
+func NewJSONFile(file string) (TaskDB, error) {
 	info, err := os.Stat(file)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldnt stat file")
@@ -99,16 +99,25 @@ func (e *jsonFile) DeleteTaskByID(ctx context.Context, id string) (*models.Task,
 		return nil, errors.Wrap(err, "couldnt load tasks from file")
 	}
 
-	for i := range tasks {
-		if tasks[i].ID == id {
-			tasks = append(tasks[:i], tasks[i+1:]...)
+	filteredTasks := []models.Task{}
+	for _, task := range tasks {
+		if task.ID != id {
+			filteredTasks = append(filteredTasks, task)
+		}
+	}
 
-			err = e.writeTasks(tasks)
-			if err != nil {
-				return nil, errors.Wrap(err, "couldnt load tasks from file")
-			}
+	if len(filteredTasks) == len(tasks) {
+		return nil, fmt.Errorf("task %s not found", id)
+	}
 
-			return &tasks[i], nil
+	err = e.writeTasks(filteredTasks)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, task := range tasks {
+		if task.ID == id {
+			return &task, nil
 		}
 	}
 
@@ -126,7 +135,7 @@ func (e *jsonFile) loadTasks() ([]models.Task, error) {
 	tasks := []models.Task{}
 	err = json.NewDecoder(file).Decode(&tasks)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldnt decode task from file")
+		return nil, errors.Wrap(err, "couldnt decode tasks from file")
 	}
 
 	return tasks, nil
@@ -140,9 +149,14 @@ func (e *jsonFile) writeTasks(tasks []models.Task) error {
 
 	defer file.Close()
 
-	err = json.NewDecoder(file).Decode(&tasks)
+	data, err := json.Marshal(tasks)
 	if err != nil {
-		return errors.Wrap(err, "couldnt decode task from file")
+		return errors.Wrap(err, "couldnt marshal tasks")
+	}
+
+	_, err = file.Write(data)
+	if err != nil {
+		return errors.Wrap(err, "couldnt write file")
 	}
 
 	return nil

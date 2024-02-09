@@ -1,9 +1,9 @@
 package models
 
 import (
-	"encoding/json"
-	"io"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Task structure
@@ -21,15 +21,27 @@ var (
 	StatusPending Status = "pending"
 )
 
-func WriteJSONResponse(w io.Writer, data interface{}) {
-	json.NewEncoder(w).Encode(data)
-}
-
-func FindTaskByID(tasks []Task, id string) *Task {
-	for _, task := range tasks {
-		if task.ID == id {
-			return &task
-		}
+func CreateTask(
+	id, title string,
+	status Status,
+	createdAt time.Time) *Task {
+	if id == "" {
+		id = uuid.New().String()
 	}
-	return nil
+
+	if status != StatusDone && status != StatusPending {
+		status = StatusPending
+	}
+
+	empty := time.Time{}
+	if createdAt == empty {
+		createdAt = time.Now()
+	}
+
+	return &Task{
+		ID:        id,
+		Title:     title,
+		Status:    status,
+		CreatedAt: createdAt,
+	}
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func GetTaskByID(c *cli.Context) error {
-	store, err := database.NewJsonFile(c.String("json_file"))
+	store, err := database.NewJSONFile(c.String("json_file"))
 	if err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func GetTaskByID(c *cli.Context) error {
 }
 
 func ListAll(c *cli.Context) error {
-	store, err := database.NewJsonFile(c.String("json_file"))
+	store, err := database.NewJSONFile(c.String("json_file"))
 	if err != nil {
 		return err
 	}

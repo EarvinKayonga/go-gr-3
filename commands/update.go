@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/EarvinKayonga/tasks/database"
 	"github.com/EarvinKayonga/tasks/models"
-	"github.com/urfave/cli/v2"
 )
 
 func UpdateTask(c *cli.Context) error {
-	store, err := database.NewJsonFile(c.String("json_file"))
+	store, err := database.NewJSONFile(c.String("json_file"))
 	if err != nil {
 		return err
 	}
@@ -38,5 +39,10 @@ func deserialize(taskStr string) (*models.Task, error) {
 		return nil, err
 	}
 
-	return &task, nil
+	return models.CreateTask(
+		task.ID,
+		task.Title,
+		task.Status,
+		task.CreatedAt,
+	), nil
 }
