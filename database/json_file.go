@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -13,6 +15,7 @@ import (
 )
 
 type jsonFile struct {
+	*sync.Mutex
 	file string
 }
 
@@ -26,10 +29,16 @@ func NewJSONFile(file string) (TaskDB, error) {
 		return nil, fmt.Errorf("%s is a folder", file)
 	}
 
-	return &jsonFile{file}, nil
+	return &jsonFile{
+		&sync.Mutex{},
+		file,
+	}, nil
 }
 
 func (e *jsonFile) CreateTask(ctx context.Context, task models.Task) (*models.Task, error) {
+	e.Lock()
+	defer e.Unlock()
+
 	tasks, err := e.loadTasks()
 	if err != nil {
 		return nil, errors.Wrap(err, "couldnt load tasks from file")
@@ -47,6 +56,9 @@ func (e *jsonFile) CreateTask(ctx context.Context, task models.Task) (*models.Ta
 }
 
 func (e *jsonFile) GetTaskByID(ctx context.Context, id string) (*models.Task, error) {
+	e.Lock()
+	defer e.Unlock()
+
 	if id == "" {
 		return nil, fmt.Errorf("empty id provided")
 	}
@@ -65,6 +77,9 @@ func (e *jsonFile) GetTaskByID(ctx context.Context, id string) (*models.Task, er
 	return nil, fmt.Errorf("task %s not found", id)
 }
 func (e *jsonFile) GetAllTasks(ctx context.Context) ([]models.Task, error) {
+	e.Lock()
+	defer e.Unlock()
+
 	tasks, err := e.loadTasks()
 	if err != nil {
 		return nil, errors.Wrap(err, "couldnt load tasks from file")
@@ -73,6 +88,9 @@ func (e *jsonFile) GetAllTasks(ctx context.Context) ([]models.Task, error) {
 	return tasks, nil
 }
 func (e *jsonFile) UpdateTask(ctx context.Context, task models.Task) (*models.Task, error) {
+	e.Lock()
+	defer e.Unlock()
+
 	tasks, err := e.loadTasks()
 	if err != nil {
 		return nil, errors.Wrap(err, "couldnt load tasks from file")
@@ -94,6 +112,9 @@ func (e *jsonFile) UpdateTask(ctx context.Context, task models.Task) (*models.Ta
 }
 
 func (e *jsonFile) DeleteTaskByID(ctx context.Context, id string) (*models.Task, error) {
+	e.Lock()
+	defer e.Unlock()
+
 	tasks, err := e.loadTasks()
 	if err != nil {
 		return nil, errors.Wrap(err, "couldnt load tasks from file")
@@ -134,7 +155,7 @@ func (e *jsonFile) loadTasks() ([]models.Task, error) {
 
 	tasks := []models.Task{}
 	err = json.NewDecoder(file).Decode(&tasks)
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return nil, errors.Wrap(err, "couldnt decode tasks from file")
 	}
 

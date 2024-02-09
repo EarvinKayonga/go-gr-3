@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package tasks.v1;
+
+option go_package = "github.com/EarvinKayonga/tasks/gen/protocol/v1;tasksv1";
+
+message Task {
+  string id = 1;
+  string title = 2;
+  Status status = 3;
+  string created_at = 4;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  DONE = 1;
+  PENDING = 2;
+}
+
+service TaskService {
+  // Get all tasks
+  rpc GetTasks (GetTasksRequest) returns (Task);
+
+  // Get a specific task
+  rpc GetTask (GetTaskRequest) returns (Task);
+
+  // Create a new task
+  rpc CreateTask (CreateTaskRequest) returns (Task);
+
+  // Update an existing task
+  rpc UpdateTask (UpdateTaskRequest) returns (Task);
+
+  // Delete a task
+  rpc DeleteTask (DeleteTaskRequest) returns (Task);
+}
+
+message GetTasksRequest {
+  string id = 1;
+}
+
+message GetTaskRequest {
+  string id = 1;
+}
+
+message CreateTaskRequest {
+  Task task = 1;
+}
+
+message UpdateTaskRequest {
+  Task task = 1;
+}
+
+message DeleteTaskRequest {
+  string id = 1;
+}

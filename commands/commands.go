@@ -62,6 +62,42 @@ func Create() *cli.App {
 					return DeleteTaskByID(c)
 				},
 			},
+			{
+				Name:  "http",
+				Usage: "REST API",
+				Flags: []cli.Flag{
+					&cli.Int64Flag{
+						Name:    "port",
+						Aliases: []string{"p"},
+						Value:   8000,
+					},
+					&cli.StringFlag{
+						Name:  "host",
+						Value: "127.0.0.1",
+					},
+				},
+				Action: func(c *cli.Context) error {
+					return RestServer(c)
+				},
+			},
+			{
+				Name:  "grpc",
+				Usage: "GRPC API",
+				Flags: []cli.Flag{
+					&cli.Int64Flag{
+						Name:    "port",
+						Aliases: []string{"p"},
+						Value:   8000,
+					},
+					&cli.StringFlag{
+						Name:  "host",
+						Value: "127.0.0.1",
+					},
+				},
+				Action: func(c *cli.Context) error {
+					return GRPCServer(c)
+				},
+			},
 		},
 	}
 }
